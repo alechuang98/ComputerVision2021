@@ -4,15 +4,16 @@ import multiprocessing as mp
 from multiprocessing import Pool
 import ctypes
 
-g_output = None
+# copy on write data
 g_padded_img = None
 g_padded_guidance = None
 g_output_shape = None
-g_padded_img_shape = None
-g_padded_guidance_shape = None
 g_gaussion = None
 g_exp_lookup = None
 g_pad_w = None
+
+# share data
+g_output = None
 
 def g_R(r, c):
     global g_padded_guidance
@@ -28,7 +29,6 @@ def g_run(pos):
     global g_output_shape
     output = np.frombuffer(g_output.get_obj()).reshape(g_output_shape)
     global g_padded_img
-
     i = pos[0] + g_pad_w
     j = pos[1] + g_pad_w
     gr = g_R(i, j)[:, :, np.newaxis]
@@ -57,21 +57,6 @@ class Joint_bilateral_filter(object):
             g_exp_lookup[i] = np.exp(- (i ** 2) / (2 * sigma_r ** 2 * 255 ** 2))
         print('[Build] finish!')
 
-    def get_R(self, r, c, padded_guidance):
-        if padded_guidance.ndim == 2:
-            return self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1] - padded_guidance[r, c])]
-        else:
-            return self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1, 0] - padded_guidance[r, c, 0])] * \
-                   self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1, 1] - padded_guidance[r, c, 1])] * \
-                   self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1, 2] - padded_guidance[r, c, 2])]       
-
-    def run(self, pos): 
-        i = pos[0] + self.pad_w
-        j = pos[1] + self.pad_w
-        gr = self.get_R(i, j, padded_guidance)[:, :, np.newaxis]
-        tmp_matrix = self.gaussion * gr
-        output[i - self.pad_w][j - self.pad_w] = (tmp_matrix * padded_img[i - self.pad_w : i + self.pad_w + 1, j - self.pad_w : j + self.pad_w + 1]).sum(axis=tuple((0, 1))) / np.sum(tmp_matrix)
-
     def joint_bilateral_filter(self, img, guidance):
         BORDER_TYPE = cv2.BORDER_REFLECT
         img = img.astype('int32')
@@ -85,8 +70,6 @@ class Joint_bilateral_filter(object):
         global g_padded_guidance
         g_padded_guidance = cv2.copyMakeBorder(guidance, self.pad_w, self.pad_w, self.pad_w, self.pad_w, BORDER_TYPE)
 
-
-        ### TODO ###
         pool = Pool()
         pool.map(g_run, np.ndindex((img.shape[0], img.shape[1])))
 
