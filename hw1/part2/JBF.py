@@ -12,11 +12,21 @@ class Joint_bilateral_filter(object):
         for i in range(self.wndw_size):
             for j in range(self.wndw_size):
                 self.gaussion[i][j] = np.exp(- ((i - self.pad_w) ** 2 + (j - self.pad_w) ** 2) / (2 * sigma_s ** 2))
-        self.exp_lookup = {}
+        self.gaussion = self.gaussion[:, :, np.newaxis]
+        
+        self.exp_lookup = np.zeros((256))
         for i in range(256):
-            for j in range(i, 256):
-                for k in range(j, 256):
-                    self.exp_lookup[i ** 2 + j ** 2 + k ** 2] = np.exp(- (i ** 2 + j ** 2 + k ** 2) / (2 * sigma_r ** 2 * 255 ** 2))
+            self.exp_lookup[i] = np.exp(- (i ** 2) / (2 * sigma_r ** 2 * 255 ** 2))
+        print('[Build] finish!')
+
+    def get_R(self, r, c, padded_guidance):
+        if padded_guidance.ndim == 3:
+            return self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1, 0] - padded_guidance[r, c, 0])] * \
+                   self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1, 1] - padded_guidance[r, c, 1])] * \
+                   self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1, 2] - padded_guidance[r, c, 2])]       
+        else:
+            return self.exp_lookup[abs(padded_guidance[r - self.pad_w : r + self.pad_w + 1, c - self.pad_w : c + self.pad_w + 1] - padded_guidance[r, c])]
+
 
     def joint_bilateral_filter(self, img, guidance):
         BORDER_TYPE = cv2.BORDER_REFLECT
@@ -31,16 +41,10 @@ class Joint_bilateral_filter(object):
         ### TODO ###
         for i in range(self.pad_w, self.pad_w + n):
             for j in range(self.pad_w, self.pad_w + m):
-                gr = np.zeros_like(self.gaussion)
-                for di in range(self.wndw_size):
-                    for dj in range(self.wndw_size):
-                        value = np.sum((padded_guidance[i - self.pad_w + di][j - self.pad_w + dj] - padded_guidance[i][j]) ** 2)
-                        gr[di][dj] = self.exp_lookup[value]
-                # print(gr)
-                # input()
-                # print(self.gaussion[:, :, np.newaxis].shape, gr[:, :, np.newaxis].shape, padded_img[i - self.pad_w : i + self.pad_w + 1, j - self.pad_w : j + self.pad_w + 1].shape)
+                gr = np.expand_dims(self.get_R(i, j, padded_guidance), 2)
+                # gr = np.expand_dims(self.exp_lookup[abs(padded_guidance[i - self.pad_w : i + self.pad_w + 1, j - self.pad_w : j + self.pad_w + 1] - padded_guidance[i][j])], 2)
                 tmp_matrix = self.gaussion * gr
                 total = np.sum(tmp_matrix)
-                output[i - self.pad_w][j - self.pad_w] = (tmp_matrix[:, :, np.newaxis] * padded_img[i - self.pad_w : i + self.pad_w + 1, j - self.pad_w : j + self.pad_w + 1]).sum(axis=tuple(range(img.ndim - 1))) / total
+                output[i - self.pad_w][j - self.pad_w] = (tmp_matrix * padded_img[i - self.pad_w : i + self.pad_w + 1, j - self.pad_w : j + self.pad_w + 1]).sum(axis=tuple((0, 1))) / total
 
         return np.clip(output, 0, 255).astype(np.uint8)
