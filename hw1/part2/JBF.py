@@ -3,7 +3,6 @@ import cv2
 import multiprocessing as mp
 from multiprocessing import Pool
 import ctypes
-import time
 
 # copy on write data
 g_guidance = None
@@ -83,10 +82,10 @@ class Joint_bilateral_filter(object):
         global g_padded_guidance
         g_padded_guidance = cv2.copyMakeBorder(guidance, self.pad_w, self.pad_w, self.pad_w, self.pad_w, BORDER_TYPE)
 
-        ROW_SIZE = 8
+        SIZE = 2000
         work_lst = [[0, 0]]
         for i in range(img.shape[0]):
-            if work_lst[-1][1] < ROW_SIZE:
+            if work_lst[-1][1] * img.shape[1] < SIZE:
                 work_lst[-1][1] += 1
             else:
                 work_lst.append([i, 1])
