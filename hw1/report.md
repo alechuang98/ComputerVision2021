@@ -70,7 +70,7 @@
 #### Environment & Test
 
 * OS: Ubuntu18.04, 5.4.0-70-generic
-* CPU: AMD R5-3600
+* CPU: AMD R5-3600 @ 3.6 GHz
 * RAM: 16GB
 * Test: 在ex.png上以`eval.py`的預設參數運行十次取mean
 
@@ -120,6 +120,7 @@ np.array在做矩陣點乘時有使用到平行化，因此避免使用for loop�
     output /= weight
     ```
     
+
 測試運行秒數為0.57秒。
 
 儘管乘法與減法的總量一樣，不過Method B善用了np.array的平行化優勢提昇單次的運算量，讓運行效能提昇了4-5倍。
