@@ -3,6 +3,7 @@ import numpy as np
 from cyvlfeat.sift.dsift import dsift
 from cyvlfeat.kmeans import kmeans
 from time import time
+import cv2
 
 #This function will sample SIFT descriptors from the training images,
 #cluster them with kmeans, and then return the cluster centers.
@@ -56,6 +57,15 @@ def build_vocabulary(image_paths, vocab_size):
     Output :
         Clusters centers of Kmeans
     '''
+
+    descriptors = []
+    for image_path in image_paths:
+        img = np.array(Image.open(image_path))
+        frames, des = dsift(img, step=[8, 8])
+        descriptors.append(des)
+    descriptors = np.concatenate(descriptors).astype(np.float)
+    
+    vocab = kmeans(descriptors, vocab_size)
 
     ##################################################################################
     #                                END OF YOUR CODE                                #

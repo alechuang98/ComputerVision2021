@@ -5,6 +5,7 @@ import pickle
 import scipy.spatial.distance as distance
 from cyvlfeat.sift.dsift import dsift
 from time import time
+import cv2
 
 def get_bags_of_sifts(image_paths):
     ############################################################################
@@ -33,6 +34,19 @@ def get_bags_of_sifts(image_paths):
         image_feats : (N, d) feature, each row represent a feature of an image
     '''
     
+    with open('vocab.pkl', 'rb') as handle:
+        vocab = pickle.load(handle)
+
+    image_feats = np.zeros((len(image_paths), vocab.shape[0]))
+    for i, image_path in enumerate(image_paths):
+        img = np.array(Image.open(image_path))
+        frames, des = dsift(img, step=[2, 2])
+        dis = distance.cdist(vocab, des, metric='seuclidean')
+        dis = np.argmin(dis, axis=0)
+        image_feats[i] = np.histogram(dis, bins=range(vocab.shape[0] + 1))[0]
+        norm = np.linalg.norm(image_feats[i])
+        if norm != 0:
+            image_feats[i] /= norm
     #############################################################################
     #                                END OF YOUR CODE                           #
     #############################################################################

@@ -36,16 +36,15 @@ def nearest_neighbor_classify(train_image_feats, train_labels, test_image_feats)
             a list(M) of string, each string indicate the predict
             category for each testing image.
     '''
-    K = 5
+    K = 6
 
-    dis = -2 * train_image_feats @ test_image_feats.T + np.sum(test_image_feats ** 2, axis=1) + np.sum(train_image_feats ** 2, axis=1)[:, np.newaxis]
-    dis[dis < 0] = 0
+    dis = distance.cdist(train_image_feats, test_image_feats, metric='seuclidean')
     indx = np.argsort(dis, axis=0)
 
     test_predicts = []
     for j in range(indx.shape[1]):
         tmp = []
-        for i in range(indx.shape[0]):
+        for i in range(K):
             tmp.append(train_labels[indx[i][j]])
         test_predicts.append(max(tmp, key=tmp.count))
 
