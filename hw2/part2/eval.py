@@ -15,8 +15,13 @@ if __name__ == "__main__":
 
     if model_type == 'conv':
         model = ConvNet()
+        model.load_state_dict(torch.load('checkpoint/ConvNet.pth'))
     elif model_type == 'mynet':
         model = MyNet()
+        model.load_state_dict(torch.load('checkpoint/MyNet.pth'))
+    
+    # print(model)
+    # print('# of parameters: ', sum(p.numel() for p in model.parameters()))
 
     #######################################################################
     # Modifiy this part to load your trained model
