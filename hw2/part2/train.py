@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
@@ -9,6 +9,9 @@ from model import ConvNet, MyNet
 from data import get_dataloader
 
 if __name__ == "__main__":
+
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
     # Specifiy data folder path and model type(fully/conv)
     folder, model_type = sys.argv[1], sys.argv[2]
 
@@ -107,7 +110,7 @@ if __name__ == "__main__":
         lr_scheduler.step()
 
     # Save trained model
-    torch.save(model.state_dict(), './checkpoint/%s.pth' % model.name())
+    torch.save(model.state_dict(), os.path.join(__location__, 'checkpoint/%s.pth' % model.name()))
 
     # Plot Learning Curve
     # TODO

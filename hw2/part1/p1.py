@@ -70,6 +70,8 @@ def main():
     # dimensionality of each image representation. See the starter code for
     # each function for more details.
 
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
     if FEATURE == 'tiny_image':
         # TODO Modify get_tiny_images.py 
         train_image_feats = get_tiny_images(train_image_paths)
@@ -77,28 +79,28 @@ def main():
 
     elif FEATURE == 'bag_of_sift':
         # TODO Modify build_vocabulary.py
-        if os.path.isfile('vocab.pkl') is False:
+        if os.path.isfile(os.path.join(__location__, 'vocab.pkl')) is False:
             print('No existing visual word vocabulary found. Computing one from training images\n')
             vocab_size = 500   ### Vocab_size is up to you. Larger values will work better (to a point) but be slower to compute
             vocab = build_vocabulary(train_image_paths, vocab_size)
             with open('vocab.pkl', 'wb') as handle:
                 pickle.dump(vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        if os.path.isfile('train_image_feats.pkl') is False:
+        if os.path.isfile(os.path.join(__location__, 'train_image_feats.pkl')) is False:
             # TODO Modify get_bags_of_sifts.py
             train_image_feats = get_bags_of_sifts(train_image_paths);
-            with open('train_image_feats.pkl', 'wb') as handle:
+            with open(os.path.join(__location__, 'train_image_feats.pkl'), 'wb') as handle:
                 pickle.dump(train_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('train_image_feats.pkl', 'rb') as handle:
+            with open(os.path.join(__location__, 'train_image_feats.pkl'), 'rb') as handle:
                 train_image_feats = pickle.load(handle)
 
-        if os.path.isfile('test_image_feats.pkl') is False:
+        if os.path.isfile(os.path.join(__location__, 'test_image_feats.pkl')) is False:
             test_image_feats  = get_bags_of_sifts(test_image_paths);
-            with open('test_image_feats.pkl', 'wb') as handle:
+            with open(os.path.join(__location__, 'test_image_feats.pkl'), 'wb') as handle:
                 pickle.dump(test_image_feats, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('test_image_feats.pkl', 'rb') as handle:
+            with open(os.path.join(__location__, 'test_image_feats.pkl'), 'rb') as handle:
                 test_image_feats = pickle.load(handle)
     
     elif FEATURE == 'dumy_feature':

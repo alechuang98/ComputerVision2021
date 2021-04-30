@@ -11,14 +11,17 @@ from data import TestDataset
 
 
 if __name__ == "__main__":
+
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
     data_path, model_type, output = sys.argv[1], sys.argv[2], sys.argv[3]
 
     if model_type == 'conv':
         model = ConvNet()
-        model.load_state_dict(torch.load('checkpoint/ConvNet.pth'))
+        model.load_state_dict(torch.load(os.path.join(__location__, 'checkpoint/ConvNet.pth')))
     elif model_type == 'mynet':
         model = MyNet()
-        model.load_state_dict(torch.load('checkpoint/MyNet.pth'))
+        model.load_state_dict(torch.load(os.path.join(__location__, 'checkpoint/MyNet.pth')))
     
     # print(model)
     # print('# of parameters: ', sum(p.numel() for p in model.parameters()))
