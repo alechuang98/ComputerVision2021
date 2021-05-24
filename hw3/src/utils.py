@@ -1,5 +1,5 @@
 import numpy as np
-import cv2
+from matplotlib.path import Path
 
 def solve_homography(u, v):
     """
@@ -32,7 +32,7 @@ def solve_homography(u, v):
     return H
 
 
-def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
+def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b', v=None):
     """
     Perform forward/backward warpping without for loops. i.e.
     for all pixels in src(xmin~xmax, ymin~ymax),  warp to destination
@@ -75,18 +75,26 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
 
     if direction == 'b':
         # TODO: 3.apply H_inv to the destination pixels and retrieve (u,v) pixels, then reshape to (ymax-ymin),(xmax-xmin)
-
+        x, y = np.meshgrid(np.arange(xmin, xmax), np.arange(ymin, ymax))
+        ones = np.ones_like(x)
+        p = np.dstack((x, y, ones)).reshape(-1, 3).T
+        points = p.T[:, 0:2]
+        p = H_inv @ p
+        p /= p[2]
+        p = p.T[:, 0:2].reshape(ymax - ymin, xmax - xmin, 2)
+        p = np.around(p).astype(np.int)
         # TODO: 4.calculate the mask of the transformed coordinate (should not exceed the boundaries of source image)
-
+        path = Path(v)
+        mask = path.contains_points(points, radius=1e-9).reshape(ymax - ymin, xmax - xmin)
         # TODO: 5.sample the source image with the masked and reshaped transformed coordinates
-
+        pts = np.argwhere(mask == True)
         # TODO: 6. assign to destination image with proper masking
-
+        dst[pts[:, 0] + ymin, pts[:, 1] + xmin] = src[p[pts[:, 0], pts[:, 1], 1], p[pts[:, 0], pts[:, 1], 0]]
         pass
 
     elif direction == 'f':
         # TODO: 3.apply H to the source pixels and retrieve (u,v) pixels, then reshape to (ymax-ymin),(xmax-xmin)
-        x, y = np.meshgrid(np.arange(xmax), np.arange(ymax))
+        x, y = np.meshgrid(np.arange(xmin, xmax), np.arange(ymin, ymax))
         ones = np.ones_like(x)
         p = np.dstack((x, y, ones)).reshape(-1, 3).T
         p = H @ p
