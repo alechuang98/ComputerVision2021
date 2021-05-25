@@ -39,12 +39,10 @@ if __name__ == "__main__":
     canvas_corners3 = np.array([[113, 185], [224, 268], [208, 519], [97, 474]])
     canvas_corners4 = np.array([[116, 632], [260, 684], [222, 956], [66, 949]])
     canvas_corners5 = np.array([[725, 62], [893, 62], [893, 191], [724, 192]])
-
     # TODO: 2. implement the transform function
     output1 = transform(img1, canvas, canvas_corners1)
     output1 = transform(img2, output1, canvas_corners2)
     output1 = transform(img3, output1, canvas_corners3)
     output1 = transform(img4, output1, canvas_corners4)
     output1 = transform(img5, output1, canvas_corners5)
-
     cv2.imwrite('output1.png', output1)

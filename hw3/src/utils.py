@@ -86,8 +86,10 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b', v=None):
         # TODO: 4.calculate the mask of the transformed coordinate (should not exceed the boundaries of source image)
         path = Path(v)
         mask = path.contains_points(points, radius=1e-9).reshape(ymax - ymin, xmax - xmin)
+        px = np.where(np.logical_and(p[:, :, 0] < src.shape[1], p[:, :, 0] >= 0), True, False)
+        py = np.where(np.logical_and(p[:, :, 1] < src.shape[0], p[:, :, 1] >= 0), True, False)
         # TODO: 5.sample the source image with the masked and reshaped transformed coordinates
-        pts = np.argwhere(mask == True)
+        pts = np.argwhere(mask & px & py)
         # TODO: 6. assign to destination image with proper masking
         dst[pts[:, 0] + ymin, pts[:, 1] + xmin] = src[p[pts[:, 0], pts[:, 1], 1], p[pts[:, 0], pts[:, 1], 0]]
         pass
@@ -104,6 +106,10 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b', v=None):
         # TODO: 4.calculate the mask of the transformed coordinate (should not exceed the boundaries of destination image)
 
         # TODO: 5.filter the valid coordinates using previous obtained mask
+        px = np.where(np.logical_and(p[:, :, 0] < dst.shape[1], p[:, :, 0] >= 0), True, False)
+        py = np.where(np.logical_and(p[:, :, 1] < dst.shape[0], p[:, :, 1] >= 0), True, False)
+        flt = np.repeat((px & py)[:, :, np.newaxis], 2, axis=2)
+        p = np.where(flt, p, -1)
 
         # TODO: 6. assign to destination image using advanced array indicing
         dst[p[:, :, 1], p[:, :, 0]] = src[ymin : ymax, xmin : xmax]
