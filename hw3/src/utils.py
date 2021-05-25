@@ -32,7 +32,7 @@ def solve_homography(u, v):
     return H
 
 
-def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b', v=None):
+def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b', v=None, alpha=0):
     """
     Perform forward/backward warpping without for loops. i.e.
     for all pixels in src(xmin~xmax, ymin~ymax),  warp to destination
@@ -91,7 +91,9 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b', v=None):
         # TODO: 5.sample the source image with the masked and reshaped transformed coordinates
         pts = np.argwhere(mask & px & py)
         # TODO: 6. assign to destination image with proper masking
-        dst[pts[:, 0] + ymin, pts[:, 1] + xmin] = src[p[pts[:, 0], pts[:, 1], 1], p[pts[:, 0], pts[:, 1], 0]]
+        dst[pts[:, 0] + ymin, pts[:, 1] + xmin] = np.where(dst[pts[:, 0] + ymin, pts[:, 1] + xmin] > 0, 
+                                                           alpha * dst[pts[:, 0] + ymin, pts[:, 1] + xmin] + (1 - alpha) * src[p[pts[:, 0], pts[:, 1], 1], p[pts[:, 0], pts[:, 1], 0]],
+                                                           src[p[pts[:, 0], pts[:, 1], 1], p[pts[:, 0], pts[:, 1], 0]])
         pass
 
     elif direction == 'f':

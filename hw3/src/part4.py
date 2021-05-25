@@ -60,7 +60,8 @@ def panorama(imgs):
         last_best_H = last_best_H @ H_inv
         # TODO: 4. apply warping
         warping(im2, dst, last_best_H, 0, h_max, 0, w_max, 'b', 
-                np.array([[0, 0], [w_max, 0], [w_max, h_max], [0, h_max]])
+                np.array([[0, 0], [w_max, 0], [w_max, h_max], [0, h_max]]),
+                0
                 )
 
     return dst
