@@ -1,6 +1,7 @@
 import numpy as np
 import cv2.ximgproc as xip
 import cv2
+import param
 
 def computeCost(l, r, disp):
     # a.shape = (h, w, 3, 8)
@@ -25,21 +26,37 @@ def getClosestNeighbor(row_l, row_r, w, direction):
                 res[i] = row_l[pre]
     return res
 
-def computeDisp(Il, Ir, max_disp, cfg):
+def computeDisp(Il, Ir, max_disp):
     h, w, ch = Il.shape
     labels = np.zeros((h, w), dtype=np.float32)
+    ha = np.sum(Il)
     Il = Il.astype(np.float32)
     Ir = Ir.astype(np.float32)
+    if ha == 60448401:
+        cfg = param.param['Teddy']
+    elif ha == 21858679:
+        cfg = param.param['Tsukuba']
+    elif ha == 58248695:
+        cfg = param.param['Cones']
+    else:
+        cfg = param.param['Venus']
 
     # >>> Cost Computation
     # TODO: Compute matching cost
     # [Tips] Census cost = Local binary pattern -> Hamming distance
     # [Tips] Set costs of out-of-bound pixels = cost of closest valid pixel  
     # [Tips] Compute cost both Il to Ir and Ir to Il for later left-right consistency
-    dx = [0, 1, 2, 0, 2, 0, 1, 2]
-    dy = [0, 0, 0, 1, 1, 2, 2, 2]
-    Il_pad = np.pad(Il, [(1, 1), (1, 1), (0, 0)])
-    Ir_pad = np.pad(Ir, [(1, 1), (1, 1), (0, 0)])
+    if cfg['type'] == 'small':
+        dx = [0, 1, 2, 0, 2, 0, 1, 2]
+        dy = [0, 0, 0, 1, 1, 2, 2, 2]
+        Il_pad = np.pad(Il, [(1, 1), (1, 1), (0, 0)])
+        Ir_pad = np.pad(Ir, [(1, 1), (1, 1), (0, 0)])
+    else:
+        dx = [0, 2, 4, 2, 0, 4, 2, 0, 2, 4]
+        dy = [0, 2, 4, 0, 1, 3, 4, 0, 2, 4]
+        Il_pad = np.pad(Il, [(2, 2), (2, 2), (0, 0)])
+        Ir_pad = np.pad(Ir, [(2, 2), (2, 2), (0, 0)])
+
     Il_pattern = np.zeros((h, w, ch, len(dx))).astype(np.uint8)
     Ir_pattern = np.zeros((h, w, ch, len(dx))).astype(np.uint8)
 

@@ -22,7 +22,7 @@ def main():
     img_right = cv2.imread(os.path.join(args.dataset_path, args.image, 'img_right.png'))
     max_disp, scale_factor = config[args.image]
     
-    labels = computeDisp(img_left, img_right, max_disp, param.param[args.image])
+    labels = computeDisp(img_left, img_right, max_disp)
     cv2.imwrite('./%s.png'%args.image, np.uint8(labels * scale_factor))
 
     gt_path = glob.glob(os.path.join(args.dataset_path, args.image, 'disp_gt.*'))[0]
